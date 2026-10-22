@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { RegionId } from '../../types/game';
 import { REGIONS_META } from '../../data/materials';
 import { createBitRobot, detectSoftwareGl } from './threeHelpers';
+import { CityHub2D } from '../ui/CityHub2D';
 
 interface CityHub3DProps {
   completedRegions: Record<RegionId, boolean>;
@@ -18,6 +19,7 @@ export const CityHub3D: React.FC<CityHub3DProps> = ({
   const mountRef = useRef<HTMLDivElement>(null);
   const onSelectRegionRef = useRef(onSelectRegion);
   onSelectRegionRef.current = onSelectRegion;
+  const [hasWebGLError, setHasWebGLError] = useState(false);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -37,11 +39,19 @@ export const CityHub3D: React.FC<CityHub3DProps> = ({
     camera.position.set(15, 13, 17);
     camera.lookAt(0, 0.5, 0);
 
-    // 2. Renderer
-    const renderer = new THREE.WebGLRenderer({
-      antialias: !isSoftware && graphicsQuality === 'high',
-      powerPreference: 'high-performance'
-    });
+    // 2. Renderer (with safe try-catch for WebGL availability)
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: !isSoftware && graphicsQuality === 'high',
+        powerPreference: 'high-performance'
+      });
+    } catch (err) {
+      console.warn('WebGL tidak didukung atau diblokir pada peramban ini. Beralih ke mode 2D:', err);
+      setHasWebGLError(true);
+      return;
+    }
+
     renderer.setSize(width, height);
     renderer.setPixelRatio(isSoftware ? 1 : Math.min(window.devicePixelRatio, 1.5));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -487,6 +497,15 @@ export const CityHub3D: React.FC<CityHub3DProps> = ({
       }
     };
   }, [completedRegions, graphicsQuality]);
+
+  if (hasWebGLError) {
+    return (
+      <CityHub2D
+        completedRegions={completedRegions}
+        onSelectRegion={onSelectRegion}
+      />
+    );
+  }
 
   return (
     <div className="relative w-full h-full min-h-[460px] select-none">
