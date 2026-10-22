@@ -1,0 +1,6 @@
+{
+  "name": "JELAJAH KOTA DIGITAL",
+  "description": "Game edukasi 3D interaktif pembelajaran Informatika untuk siswa SMP kelas VII–IX memulihkan empat wilayah Kota Digital bersama robot BIT.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
